@@ -85,9 +85,8 @@ func NewDownloadProber(cfg DownloadConfig) *DownloadProber {
 func (p *DownloadProber) Download(ctx context.Context, ip netip.Addr) DownloadResult {
 	start := time.Now()
 	out := DownloadResult{
-		IP:    ip,
-		Bytes: p.cfg.Bytes,
-		When:  start,
+		IP:   ip,
+		When: start,
 	}
 
 	host := ip.String()
