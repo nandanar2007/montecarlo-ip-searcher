@@ -12,8 +12,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mutou/montecarlo-ip-searcher/internal/cidr"
-	"github.com/mutou/montecarlo-ip-searcher/internal/probe"
+	"github.com/Leo-Mu/montecarlo-ip-searcher/internal/cidr"
+	"github.com/Leo-Mu/montecarlo-ip-searcher/internal/probe"
 )
 
 type Config struct {
@@ -50,6 +50,12 @@ type TopResult struct {
 	TotalMS   int64             `json:"total_ms"`
 	ScoreMS   float64           `json:"score_ms"`
 	Trace     map[string]string `json:"trace,omitempty"`
+
+	DownloadOK    bool    `json:"download_ok"`
+	DownloadBytes int64   `json:"download_bytes"`
+	DownloadMS    int64   `json:"download_ms"`
+	DownloadMbps  float64 `json:"download_mbps"`
+	DownloadError string  `json:"download_error,omitempty"`
 
 	PrefixSamples int `json:"prefix_samples"`
 	PrefixOK      int `json:"prefix_ok"`

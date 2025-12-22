@@ -11,9 +11,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/mutou/montecarlo-ip-searcher/internal/output"
-	"github.com/mutou/montecarlo-ip-searcher/internal/probe"
-	"github.com/mutou/montecarlo-ip-searcher/internal/search"
+	"github.com/Leo-Mu/montecarlo-ip-searcher/internal/output"
+	"github.com/Leo-Mu/montecarlo-ip-searcher/internal/probe"
+	"github.com/Leo-Mu/montecarlo-ip-searcher/internal/search"
 )
 
 type repeatStringFlag []string
@@ -37,6 +37,9 @@ func main() {
 		sni       string
 		hostHdr   string
 		path      string
+		dlTop     int
+		dlBytes   int64
+		dlTimeout time.Duration
 		outFmt    string
 		outPath   string
 		splitV4   int
@@ -59,6 +62,9 @@ func main() {
 	flag.StringVar(&sni, "sni", "example.com", "TLS SNI server name")
 	flag.StringVar(&hostHdr, "host-header", "example.com", "HTTP Host header")
 	flag.StringVar(&path, "path", "/cdn-cgi/trace", "HTTP path to request")
+	flag.IntVar(&dlTop, "download-top", 5, "After search, run download speed test for top N IPs (0 to disable)")
+	flag.Int64Var(&dlBytes, "download-bytes", 50_000_000, "Download test size in bytes (speed.cloudflare.com/__down?bytes=...)")
+	flag.DurationVar(&dlTimeout, "download-timeout", 45*time.Second, "Per-IP download test timeout")
 	flag.StringVar(&outFmt, "out", "jsonl", "Output format: jsonl|csv|text")
 	flag.StringVar(&outPath, "out-file", "", "Write output to file (default: stdout)")
 	flag.IntVar(&splitV4, "split-step-v4", 2, "When splitting an IPv4 prefix, increase prefix bits by this step")
@@ -105,6 +111,37 @@ func main() {
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)
+	}
+
+	if dlTop < 0 {
+		dlTop = 0
+	}
+	if dlTop > 0 && dlBytes > 0 {
+		if dlTop > len(res.Top) {
+			dlTop = len(res.Top)
+		}
+		dlp := probe.NewDownloadProber(probe.DownloadConfig{
+			Timeout:  dlTimeout,
+			Bytes:    dlBytes,
+			SNI:      "speed.cloudflare.com",
+			HostName: "speed.cloudflare.com",
+			Path:     "/__down",
+		})
+		for i := 0; i < dlTop; i++ {
+			r := &res.Top[i]
+			dctx, cancel := context.WithTimeout(ctx, dlTimeout)
+			dr := dlp.Download(dctx, r.IP)
+			cancel()
+			r.DownloadOK = dr.OK
+			r.DownloadBytes = dr.Bytes
+			r.DownloadMS = dr.TotalMS
+			r.DownloadMbps = dr.Mbps
+			r.DownloadError = dr.Error
+			if verbose {
+				fmt.Fprintf(os.Stderr, "download: rank=%d ip=%s ok=%v mbps=%.2f ms=%d bytes=%d err=%s\n",
+					i+1, r.IP.String(), dr.OK, dr.Mbps, dr.TotalMS, dr.Bytes, dr.Error)
+			}
+		}
 	}
 
 	var w *os.File = os.Stdout

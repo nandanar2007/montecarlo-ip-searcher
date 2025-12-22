@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/mutou/montecarlo-ip-searcher/internal/search"
+	"github.com/Leo-Mu/montecarlo-ip-searcher/internal/search"
 )
 
 func WriteJSONL(w io.Writer, rows []search.TopResult) error {
@@ -30,6 +30,7 @@ func WriteCSV(w io.Writer, rows []search.TopResult) error {
 		"ok", "status",
 		"connect_ms", "tls_ms", "ttfb_ms", "total_ms",
 		"score_ms", "samples_prefix", "ok_prefix", "fail_prefix",
+		"download_ok", "download_mbps", "download_ms", "download_bytes", "download_error",
 		"colo",
 	}
 	if err := cw.Write(header); err != nil {
@@ -55,6 +56,11 @@ func WriteCSV(w io.Writer, rows []search.TopResult) error {
 			strconv.Itoa(r.PrefixSamples),
 			strconv.Itoa(r.PrefixOK),
 			strconv.Itoa(r.PrefixFail),
+			strconv.FormatBool(r.DownloadOK),
+			fmt.Sprintf("%.2f", r.DownloadMbps),
+			strconv.FormatInt(r.DownloadMS, 10),
+			strconv.FormatInt(r.DownloadBytes, 10),
+			r.DownloadError,
 			colo,
 		}
 		if err := cw.Write(rec); err != nil {
@@ -73,8 +79,15 @@ func WriteText(w io.Writer, rows []search.TopResult) error {
 		if r.Trace != nil {
 			colo = r.Trace["colo"]
 		}
-		_, err := fmt.Fprintf(w, "%d\t%s\t%.1fms\tok=%v\tstatus=%d\tprefix=%s\tcolo=%s\n",
-			i+1, r.IP.String(), r.ScoreMS, r.OK, r.Status, r.Prefix.String(), colo)
+		dl := ""
+		if r.DownloadOK || r.DownloadError != "" || r.DownloadMS != 0 || r.DownloadBytes != 0 {
+			dl = fmt.Sprintf("\tdl_ok=%v\tdl_mbps=%.2f\tdl_ms=%d", r.DownloadOK, r.DownloadMbps, r.DownloadMS)
+			if r.DownloadError != "" {
+				dl += "\tdl_err=" + r.DownloadError
+			}
+		}
+		_, err := fmt.Fprintf(w, "%d\t%s\t%.1fms\tok=%v\tstatus=%d\tprefix=%s\tcolo=%s%s\n",
+			i+1, r.IP.String(), r.ScoreMS, r.OK, r.Status, r.Prefix.String(), colo, dl)
 		if err != nil {
 			return err
 		}
