@@ -7,24 +7,24 @@
 IPv4 和 IPv6 的推荐命令分别为
 
 ```bash
-go run ./cmd/mcis --budget 500 --concurrency 50 --heads 8 --beam 32 -v --out text --sni example.com --host-header example.com --cidr-file ./ipv4cidr.txt
+go run ./cmd/mcis --budget 500 --concurrency 50 --heads 8 --beam 32 -v --out text --host example.com --cidr-file ./ipv4cidr.txt
 ```
 
 ```bash
-go run ./cmd/mcis --budget 2000 --concurrency 100 --heads 10 --beam 32 -v --out text --sni example.com --host-header example.com --cidr-file ./ipv6-cidr.txt
+go run ./cmd/mcis --budget 2000 --concurrency 100 --heads 10 --beam 32 -v --out text --host example.com --cidr-file ./ipv6-cidr.txt
 ```
 
 [Release](https://github.com/Leo-Mu/montecarlo-ip-searcher/releases/latest) 用户下载解压后在文件夹中右键打开终端，并将程序拖入终端，加入参数即可。
 
 ```bash
- --budget 500 --concurrency 50 --heads 8 --beam 32 -v --out text --sni example.com --host-header example.com --cidr-file ./ipv4cidr.txt
+ --budget 500 --concurrency 50 --heads 8 --beam 32 -v --out text --host example.com --cidr-file ./ipv4cidr.txt
 ```
 
 ```bash
- --budget 2000 --concurrency 100 --heads 10 --beam 32 -v --out text --sni example.com --host-header example.com --cidr-file ./ipv6-cidr.txt
+ --budget 2000 --concurrency 100 --heads 10 --beam 32 -v --out text --host example.com --cidr-file ./ipv6-cidr.txt
 ```
 
-注意，本项目使用的是 https 真返回测速，所以显示延迟会是其它工具的结果加上一个固定值，使用起来是一样的。使用你的网站作为 sni 和 host，可以保证优选出来的 ip 当前在你的区域一定对你的网站生效，如有特殊需求还可自定义 path。
+注意，本项目使用的是 https 真返回测速，所以显示延迟会是其它工具的结果加上一个固定值，使用起来是一样的。使用你的网站作为 `--host`（同时用于 SNI 和 Host header），可以保证优选出来的 ip 当前在你的区域一定对你的网站生效，如有特殊需求还可自定义 path。
 
 推荐在晚高峰时段运行测试，因为本项目采用不同 IP 之间的延迟差异来缩小查找范围，差异越小，收敛越困难。
 
@@ -34,7 +34,7 @@ go run ./cmd/mcis --budget 2000 --concurrency 100 --heads 10 --beam 32 -v --out 
 - **多头分散探索**：同时并行探索多个次优子网，降低“先入为主”陷入局部最优的概率。
 - **IPv4 / IPv6 同时支持**：CIDR 解析、拆分、采样、探测全流程支持 v4/v6 混合输入。
 - **强制直连探测**：即使系统/环境变量配置了代理，本工具也会**忽略 `HTTP_PROXY/HTTPS_PROXY/NO_PROXY`**，确保测速不被代理污染。
-- **探测方式**：默认对 `https://<ip>/cdn-cgi/trace` 发起请求（可自定义 `--sni` / `--host-header` / `--path`）。
+- **探测方式**：默认对 `https://example.com/cdn-cgi/trace` 发起请求，域名可用 `--host` 覆盖，也可分别用 `--sni` / `--host-header` 覆盖 tls sni 和 http Host header ；路径可使用 `--path` 覆盖。
 - **输出格式**：支持 `jsonl` / `csv` / `text`。
 
 ## 快速开始
@@ -71,8 +71,9 @@ go run ./cmd/mcis --budget 2000 --concurrency 100 --heads 10 --beam 32 -v --out 
 - `--split-step-v4`：IPv4 下钻时前缀长度增加步长（例如 `/16 -> /18` 用 `2`）
 - `--split-step-v6`：IPv6 下钻时前缀长度增加步长（例如 `/32 -> /36` 用 `4`）
 - `--max-bits-v4` / `--max-bits-v6`：限制下钻到的最细前缀
-- `--sni`：TLS SNI（默认 `example.com`）
-- `--host-header`：HTTP Host（默认 `example.com`）
+- `--host`：同时设置 TLS SNI 与 HTTP Host header（默认 `example.com`）
+- `--sni`：TLS SNI（已弃用：推荐用 `--host`）
+- `--host-header`：HTTP Host（已弃用：推荐用 `--host`）
 - `--path`：请求路径（默认 `/cdn-cgi/trace`）
 - `--out`：输出格式 `jsonl|csv|text`
 - `--out-file`：输出到文件（默认 stdout）

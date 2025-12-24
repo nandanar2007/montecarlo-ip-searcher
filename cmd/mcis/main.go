@@ -34,6 +34,7 @@ func main() {
 		heads     int
 		beam      int
 		timeout   time.Duration
+		host      string
 		sni       string
 		hostHdr   string
 		path      string
@@ -59,8 +60,9 @@ func main() {
 	flag.IntVar(&heads, "heads", 4, "Number of search heads (diversification)")
 	flag.IntVar(&beam, "beam", 32, "Beam width per head (kept candidate prefixes)")
 	flag.DurationVar(&timeout, "timeout", 3*time.Second, "Per-probe timeout")
-	flag.StringVar(&sni, "sni", "example.com", "TLS SNI server name")
-	flag.StringVar(&hostHdr, "host-header", "example.com", "HTTP Host header")
+	flag.StringVar(&host, "host", "example.com", "Host name used for BOTH TLS SNI and HTTP Host header (recommended)")
+	flag.StringVar(&sni, "sni", "", "TLS SNI server name (deprecated: use --host)")
+	flag.StringVar(&hostHdr, "host-header", "", "HTTP Host header (deprecated: use --host)")
 	flag.StringVar(&path, "path", "/cdn-cgi/trace", "HTTP path to request")
 	flag.IntVar(&dlTop, "download-top", 5, "After search, run download speed test for top N IPs (0 to disable)")
 	flag.Int64Var(&dlBytes, "download-bytes", 50_000_000, "Download test size in bytes (speed.cloudflare.com/__down?bytes=...)")
@@ -78,6 +80,15 @@ func main() {
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
+
+	// Unify host: by default use --host for both SNI and Host header.
+	// Old flags are still supported and override independently if provided.
+	if sni == "" {
+		sni = host
+	}
+	if hostHdr == "" {
+		hostHdr = host
+	}
 
 	cfg := search.Config{
 		Budget:          budget,
